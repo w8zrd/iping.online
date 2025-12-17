@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { Profile, Ping } from '../types';
+import { logger } from '../lib/logger';
 
 // Renaming class to ApiService for a more general purpose, incorporating profile and post logic
 export class ApiService {
@@ -14,7 +15,7 @@ export class ApiService {
     async fetchOwnProfile(): Promise<Profile | null> {
         const userId = await this.getUserId();
         if (!userId) {
-            console.error('User not authenticated to fetch profile.');
+            logger.error('User not authenticated to fetch profile.', { userMessage: 'Authentication required to fetch profile.' });
             return null;
         }
 
@@ -25,7 +26,7 @@ export class ApiService {
             .single();
 
         if (error) {
-            console.error('Error fetching profile:', error.message);
+            logger.error('Error fetching profile:', error, { userMessage: 'Failed to load profile.', showToast: true });
             return null;
         }
 
@@ -40,7 +41,7 @@ export class ApiService {
     async updateProfile(updates: Partial<Profile>): Promise<Profile | null> {
         const userId = await this.getUserId();
         if (!userId) {
-            console.error('User not authenticated to update profile.');
+            logger.error('User not authenticated to update profile.', { userMessage: 'Authentication required to update profile.' });
             return null;
         }
 
@@ -59,7 +60,7 @@ export class ApiService {
         ) as Partial<Profile>;
 
         if (Object.keys(finalUpdates).length === 0) {
-            console.warn('No valid updates provided for profile.');
+            logger.warn('No valid updates provided for profile.');
             return this.fetchOwnProfile(); // Return current profile if no updates
         }
         
@@ -71,7 +72,7 @@ export class ApiService {
             .single();
 
         if (error) {
-            console.error('Error updating profile:', error.message);
+            logger.error('Error updating profile:', error, { userMessage: 'Failed to update profile.', showToast: true });
             return null;
         }
 
@@ -85,7 +86,7 @@ export class ApiService {
     async uploadAvatar(file: File): Promise<Profile | null> {
         const userId = await this.getUserId();
         if (!userId) {
-            console.error('User not authenticated to upload avatar.');
+            logger.error('User not authenticated to upload avatar.', { userMessage: 'Authentication required to upload avatar.' });
             return null;
         }
 
@@ -101,7 +102,7 @@ export class ApiService {
             });
 
         if (uploadError) {
-            console.error('Error uploading avatar:', uploadError.message);
+            logger.error('Error uploading avatar:', uploadError, { userMessage: 'Failed to upload avatar.', showToast: true });
             return null;
         }
 
@@ -124,7 +125,7 @@ export class ApiService {
     async createPost(content: string, imageFile?: File): Promise<Ping | null> {
         const userId = await this.getUserId();
         if (!userId) {
-            console.error('User not authenticated to create post.');
+            logger.error('User not authenticated to create post.', { userMessage: 'Authentication required to create post.' });
             return null;
         }
 
@@ -144,7 +145,7 @@ export class ApiService {
                 });
 
             if (uploadError) {
-                console.error('Error uploading post image:', uploadError.message);
+                logger.error('Error uploading post image:', uploadError, { userMessage: 'Failed to upload post image.', showToast: true });
                 // Fail post creation if image upload fails
                 return null;
             }
@@ -167,7 +168,7 @@ export class ApiService {
             .single();
 
         if (error) {
-            console.error('Error inserting post:', error.message);
+            logger.error('Error inserting post:', error, { userMessage: 'Failed to create post.', showToast: true });
             return null;
         }
 
@@ -194,13 +195,13 @@ export class ApiService {
                 .range(offset, offset + limit - 1);
 
             if (error) {
-                console.error('Error fetching posts:', error.message);
+                logger.error('Error fetching posts:', error, { userMessage: 'Failed to load posts.', showToast: true });
                 return null;
             }
 
             return data as unknown as Ping[];
         } catch (error) {
-             console.error('Exception fetching posts:', error);
+             logger.error('Exception fetching posts:', error, { userMessage: 'Failed to load posts.', showToast: true });
              return null;
         }
     }

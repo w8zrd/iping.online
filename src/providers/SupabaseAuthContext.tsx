@@ -63,7 +63,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         }
       } catch (e) {
-        // Error handled gracefully
+        logger.error('Error in handleAuthStateChange', e);
+        if (isMounted.current) {
+          setUser(null);
+          setSession(null);
+          setIsAdmin(false);
+        }
       } finally {
         if (isMounted.current) {
           setLoading(false);
@@ -89,22 +94,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }, 5000);
 
             if (session) {
-                // Rely on the active listener (set up just before this call) to process the session.
-                // However, trigger the handler manually just in case the event fired before subscription
-                // or won't fire for existing session without a change.
-                // actually onAuthStateChange(callback) returns the current session immediately in some versions,
-                // but checking session manually ensures we don't miss it.
-                // Let's manually invoke the handler if we have a session, but be careful of race conditions.
-                // The safest way is to trust the listener, but if it doesn't fire, the timeout catches it.
-                // Better: Explicitly fetch profile if we have a session, then set loading false.
-                
-                // For "lightning fast" feel, we might want to optimistic UI, but correct auth is critical.
+                // Manually trigger the state update for the initial session,
+                // as onAuthStateChange might not fire for an already existing session.
+                // We await this to ensure isAdmin and user are correctly set before proceeding.
+                await handleAuthStateChange('INITIAL_LOAD', session);
             } else {
                 // If no session, explicitly set state and stop loading
                 setUser(null);
                 setSession(null);
                 setIsAdmin(false);
-                setLoading(false);
+                setLoading(false); // Ensure loading is false if no session
             }
         } catch (error) {
             logger.error('Error fetching initial session', error);
@@ -146,7 +145,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string, username: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = import.meta.env.VITE_APP_URL || `${window.location.origin}/`;
     
     logger.info('Attempting sign up', { email, username });
     const { error } = await supabase.auth.signUp({

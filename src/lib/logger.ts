@@ -1,4 +1,6 @@
 
+import { toast as useActualToast } from '@/hooks/use-toast';
+
 type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 
 interface LogOptions {
@@ -8,6 +10,8 @@ interface LogOptions {
   showToast?: boolean;
   /** The variant of the toast (e.g., 'destructive' for errors). */
   toastVariant?: 'default' | 'destructive';
+  /** Optional ErrorInfo object for more detailed error logging, typically from an Error Boundary. */
+  errorInfo?: import('react').ErrorInfo;
 }
 
 /**
@@ -44,7 +48,11 @@ export const logger = {
     const showToast = options?.showToast ?? (level === 'error' || level === 'warn');
 
     if (showToast && options?.userMessage) {
-      // Toast functionality is currently removed, logging only to console.
+      useActualToast({
+        title: level === 'error' ? 'Error' : 'Notification',
+        description: options.userMessage,
+        variant: options.toastVariant || 'default',
+      });
     }
   },
 

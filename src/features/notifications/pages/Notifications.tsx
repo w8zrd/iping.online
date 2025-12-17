@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/SupabaseAuthContext';
 import { Skeleton } from '@/components/ui/Skeleton';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface Notification {
   id: string;
@@ -86,18 +87,8 @@ const Notifications = () => {
             <div className="mb-8 pt-24 animate-fade-in">
               <h1 className="text-3xl font-bold">Notifications</h1>
             </div>
-            <div className="glass-strong rounded-3xl shadow-md overflow-hidden">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="p-4 border-b border-border/30 last:border-b-0">
-                  <div className="flex items-start gap-3">
-                    <Skeleton className="w-12 h-12 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-1/3" />
-                      <Skeleton className="h-3 w-1/2" />
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="glass-strong rounded-3xl shadow-md overflow-hidden flex justify-center items-center h-40">
+              <LoadingSpinner text="Loading notifications..." />
             </div>
           </div>
           <Navigation />
@@ -134,7 +125,7 @@ const Notifications = () => {
                         <div className="relative">
                         <Avatar className="w-12 h-12">
                             <AvatarFallback className="bg-gradient-to-br from-primary via-primary/80 to-primary/50 text-white font-bold">
-                            {actor.displayName?.[0]?.toUpperCase() || '?'}
+                            {actor.displayName?.toUpperCase() || '?'}
                             </AvatarFallback>
                         </Avatar>
                         <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5">

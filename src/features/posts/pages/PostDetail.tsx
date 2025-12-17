@@ -1,36 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom'; // Import useNavigate
 import { supabase } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
-
-interface Post {
-  id: number;
-  author_id: string;
-  content: string;
-  created_at: string;
-  profiles: {
-    username: string;
-  } | null;
-  likes: number;
-  comments: number;
-}
+import { Ping, Comment, Profile } from '@/types'; // Import types
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'; // Import Avatar components
+import { Button } from '@/components/ui/Button'; // Import Button
+import { Textarea } from '@/components/ui/Textarea'; // Import Textarea
+import { useAuth } from '@/providers/SupabaseAuthContext'; // Import useAuth
+import { formatDistanceToNow } from 'date-fns'; // Import date-fns
+import { ThumbsUp, MessageCircle, Share2 } from 'lucide-react'; // Import lucide-react icons
+import { textParser } from '@/lib/textParser'; // Import textParser
+import { toast } from '@/hooks/use-toast'; // Import toast hook
+import LoadingSpinner from '@/components/LoadingSpinner'; // Import LoadingSpinner
 
 interface Comment {
-  id: number;
+  id: string;
   content: string;
   created_at: string;
-  profiles: {
-    username: string;
-  } | null;
+  profiles?: Profile;
+}
+
+interface PostDetailPing extends Ping {
+  profiles?: Profile;
+  likes_count: number;
+  comments_count: number;
 }
 
 const PostDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [post, setPost] = useState<Post | null>(null);
+  const navigate = useNavigate();
+  const [post, setPost] = useState<PostDetailPing | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchPostAndComments = async () => {
@@ -77,7 +81,7 @@ const PostDetail: React.FC = () => {
         return;
       }
       
-      setPost({ ...postData, likes: likesCount || 0, comments: commentsData.length } as Post);
+      setPost({ ...postData, likes_count: likesCount || 0, comments_count: commentsData.length } as PostDetailPing);
       setComments(commentsData as Comment[]);
       setLoading(false);
     };
@@ -129,7 +133,7 @@ const PostDetail: React.FC = () => {
     }
   };
 
-  if (loading) return <p>Loading post details...</p>;
+  if (loading) return <LoadingSpinner text="Loading post details..." />;
   if (error) return <p className="text-red-500">{error}</p>;
   if (!post) return <p>Post not found.</p>;
 
@@ -146,8 +150,8 @@ const PostDetail: React.FC = () => {
         </div>
         <p className="mb-4">{post.content}</p>
         <div className="flex justify-between text-gray-500">
-          <span>{post.likes} Likes</span>
-          <span>{post.comments} Comments</span>
+          <span>{post.likes_count} Likes</span>
+          <span>{post.comments_count} Comments</span>
         </div>
       </div>
 

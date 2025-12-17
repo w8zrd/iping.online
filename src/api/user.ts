@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase";
 import { Profile } from "../types";
+import { logger } from "@/lib/logger";
 
 /**
  * Follows a user by inserting a row into the 'follows' table.
@@ -14,6 +15,7 @@ export async function followUser(user_to_follow_id: string) {
     });
 
   if (error) {
+    logger.error('Failed to follow user:', error, { userMessage: 'Could not follow user. Please try again.' });
     throw new Error(error.message);
   }
 }
@@ -31,6 +33,7 @@ export async function unfollowUser(user_to_unfollow_id: string) {
     // follower_id is implicitly checked by RLS policy
 
   if (error) {
+    logger.error('Failed to unfollow user:', error, { userMessage: 'Could not unfollow user. Please try again.' });
     throw new Error(error.message);
   }
 }
@@ -48,6 +51,7 @@ export async function isFollowing(target_user_id: string): Promise<boolean> {
     .single();
 
   if (error && error.code !== "PGRST116") { // PGRST116 means no rows found (not following)
+    logger.error('Error checking follow status:', error, { userMessage: 'Failed to check follow status.' });
     throw new Error(error.message);
   }
 
@@ -68,6 +72,7 @@ export async function updateUserProfile(profileUpdate: { username?: string; disp
     .select();
 
   if (error) {
+    logger.error('Failed to update user profile:', error, { userMessage: 'Could not update profile. Please try again.' });
     throw new Error(error.message);
   }
 }
@@ -81,6 +86,7 @@ export async function getUserCount(): Promise<number> {
     .select("id", { count: 'exact', head: true });
 
   if (error) {
+    logger.error('Failed to fetch user count:', error, { userMessage: 'Could not retrieve user count.' });
     throw new Error(error.message);
   }
 

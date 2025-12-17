@@ -43,8 +43,10 @@ BEGIN
   INSERT INTO public.profiles (id, username, display_name, avatar_url)
   VALUES (
     new.id,
-    new.raw_user_meta_data ->> 'username',
-    COALESCE(new.raw_user_meta_data ->> 'display_name', new.raw_user_meta_data ->> 'username'),
+    -- Fallback to email if username is not provided in raw_user_meta_data
+    COALESCE(new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1)),
+    -- Fallback to username (or email-derived) if display_name is not provided
+    COALESCE(new.raw_user_meta_data ->> 'display_name', new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1)),
     new.raw_user_meta_data ->> 'avatar_url'
   );
   RETURN new;
