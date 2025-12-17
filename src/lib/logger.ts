@@ -1,5 +1,5 @@
 
-import { toast as useActualToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 
@@ -48,7 +48,7 @@ export const logger = {
     const showToast = options?.showToast ?? (level === 'error' || level === 'warn');
 
     if (showToast && options?.userMessage) {
-      useActualToast({
+      toast({
         title: level === 'error' ? 'Error' : 'Notification',
         description: options.userMessage,
         variant: options.toastVariant || 'default',

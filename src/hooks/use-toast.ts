@@ -6,13 +6,16 @@ interface Toast {
   variant?: 'default' | 'destructive' | 'success'; // Assuming common variants
 }
 
-export function useToast() {
-  const toast = (props: Toast) => {
-    console.log(`[TOAST - ${props.variant?.toUpperCase() || 'DEFAULT'}] Title: ${props.title}, Description: ${props.description || ''}`);
-  };
+export const toast = (props: Toast) => {
+  console.log(
+    `[TOAST - ${props.variant?.toUpperCase() || 'DEFAULT'}] Title: ${
+      props.title
+    }, Description: ${props.description || ''}`
+  );
+};
 
+export function useToast() {
   return {
     toast,
-    // Add other necessary properties/functions if they were used in the provided pages
   };
 }
